@@ -84,8 +84,8 @@ ob_start();
 
             <div class="col-md">
                 <div class="form-floating mb-3">
-                    <input type="text" name="cpf" id="cpf" class="form-control" placeholder="CPF">
-                    <label for="cpf">CPF</label>
+                    <input type="text" name="cpf" id="cpf" class="form-control" placeholder="CPF ( sómente numeros )">
+                    <label for="cpf">CPF ( sómente numeros )</label>
                 </div>
             </div>
         </div>
