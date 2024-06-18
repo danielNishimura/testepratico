@@ -74,12 +74,32 @@ ob_start();
 
 <div class="container">
     <form method="post" action="">
-        <label for="descricao">Descrição</label>
-        <input type="text" name="descricao" id="descricao" class="form-control">
-        <label for="status">Status</label>
-        <input type="text" name="status" id="status" class="form-control">
-        <label for="tempoGarantia">Tempo de Garantia ( em meses )</label>
-        <input type="text" name="tempoGarantia" id="tempoGarantia" class="form-control">
+        <div class="col-md mt-3">
+            <div class="form-floating mb-3">
+                <input type="text" name="descricao" id="descricao" class="form-control" placeholder="Descrição">
+                <label for="descricao">Descrição</label>
+            </div>
+        </div>
+
+        <div class="row g-2 mt-3">
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <input type="text" name="status" id="status" class="form-control" placeholder="Status">
+                    <label for="status">Status</label>
+                </div>
+            </div>
+
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <input type="text" name="tempoGarantia" id="tempoGarantia" class="form-control" placeholder="Tempo de garantia ( em meses )">
+                    <label for="tempoGarantia">Tempo de Garantia ( em meses )</label>
+                </div>
+            </div>
+        </div>
+
+
+
+
         <!-- Adiciona um campo oculto para identificar a ação -->
         <input type="hidden" name="action" value="adicionar">
         <input type="submit" value="Cadastrar" class="btn btn-success">

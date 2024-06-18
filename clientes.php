@@ -74,15 +74,32 @@ ob_start();
 
 <div class="container">
     <form method="post" action="">
-        <label for="nome">Nome</label>
-        <input type="text" name="nome" id="nome" class="form-control">
-        <label for="cpf">CPF</label>
-        <input type="text" name="cpf" id="cpf" class="form-control">
-        <label for="endereco">Endereço</label>
-        <input type="text" name="endereco" id="endereco" class="form-control">
+        <div class="row g-2 mt-3">
+            <div class="col-md-8">
+                <div class="form-floating mb-3">
+                    <input type="text" name="nome" id="nome" class="form-control" placeholder="Nome">
+                    <label for="nome">Nome</label>
+                </div>
+            </div>
+
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <input type="text" name="cpf" id="cpf" class="form-control" placeholder="CPF">
+                    <label for="cpf">CPF</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="form-floating mb-3">
+                <input type="text" name="endereco" id="endereco" class="form-control" placeholder="Endereço">
+                <label for="endereco">Endereço</label>
+            </div>
+        </div>
+        
+
         <!-- Adiciona um campo oculto para identificar a ação -->
         <input type="hidden" name="action" value="adicionar">
-        <input type="submit" value="Cadastrar" class="btn btn-success">
+        <input type="submit" value="Cadastrar" class="btn btn-success mb-3">
     </form>
 </div>
 

@@ -11,8 +11,6 @@ ob_start();
     $produto = new Produtos($pdo);
     
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-                ##############################
             // Verifica se a ação é para excluir o cliente
     if (isset($_POST['action']) && $_POST['action'] == "excluirOrdem") {
         // Obtém o ID do cliente a ser excluído
@@ -34,12 +32,8 @@ ob_start();
             exit; // Encerra a execução do script após enviar a resposta
         }
     }
-        ##############################
 
-
-
-
-        // Verifica se o botão "Salvar" foi clicado
+    // Verifica se o botão "Salvar" foi clicado
         if (isset($_POST['action']) && $_POST['action'] == "salvar") {
             $id = $_POST['edit_id'];
             $dataAbertura = $_POST['edit_dataAbertura'];
@@ -53,9 +47,6 @@ ob_start();
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
 
-            // Exibe mensagem de sucesso
-            //echo '<div class="alert alert-success" role="alert">Ordem atualizado com sucesso!</div>';
-
         }
         // Se a ação for "adicionar", adiciona um novo Ordem
         elseif (isset($_POST['action']) && $_POST['action'] == "adicionar") {
@@ -65,35 +56,61 @@ ob_start();
             $clienteEndereco = $_POST['clienteEndereco'];
             $produtos = $_POST['produtos'];
 
-            //var_dump($_POST);
-            //die;
-
-            // Verifica se o cliente já existe
-            $clienteExistente = $cliente->verificarCliente($clienteCpf);
-
-            if ($clienteExistente) {
-                $clienteId = $clienteExistente['id'];
-            } else {
-                $clienteId = $cliente->adicionarCliente($clienteNome, $clienteCpf, $clienteEndereco);
+            // Verifique se os campos obrigatórios estão vazios
+            if (empty($dataAbertura)) {
+                $errors[] = 'A data de abertura é obrigatória.';
             }
-            // Certifique-se de que $clienteId não está vazio ou nulo
-            if (!empty($clienteId)) {
-                // Chama o método para adicionar o Ordem
-                $ordemId = $ordem->adicionarOrdem($dataAbertura, $clienteId);
 
-                if ($ordemId) {
-                    foreach ($produtos as $produtoId) {
-                        $ordem->adicionarProdutoOrdem($ordemId, $produtoId);
-                    }
-                    // Armazena a mensagem de sucesso na sessão
-                    $_SESSION['message'] = 'Ordem cadastrada com sucesso!';
-                    header("Location: " . $_SERVER['PHP_SELF']);
-                    exit;
+            if (empty($clienteCpf)) {
+                $errors[] = 'O CPF do consumidor é obrigatório.';
+            }
+
+            if (empty($clienteNome)) {
+                $errors[] = 'O nome do consumidor é obrigatório.';
+            }
+
+            if (empty($clienteEndereco)) {
+                $errors[] = 'O endereço do consumidor é obrigatório.';
+            }
+
+            if (empty($produtos)) {
+                $errors[] = 'Pelo menos um produto deve ser selecionado.';
+            }
+
+            if (empty($errors)) {
+                // Verifica se o cliente já existe
+                $clienteExistente = $cliente->verificarCliente($clienteCpf);
+    
+                if ($clienteExistente) {
+                    $clienteId = $clienteExistente['id'];
                 } else {
-                    echo 'Erro: Ordem ID não foi gerado corretamente.';
+                    $clienteId = $cliente->adicionarCliente($clienteNome, $clienteCpf, $clienteEndereco);
                 }
-            } else; {
-                echo 'Erro: Cliente ID não foi definido corretamente.';
+                // Certifique-se de que $clienteId não está vazio ou nulo
+                if (!empty($clienteId)) {
+                    // Chama o método para adicionar o Ordem
+                    $ordemId = $ordem->adicionarOrdem($dataAbertura, $clienteId);
+    
+                    if ($ordemId) {
+                        foreach ($produtos as $produtoId) {
+                            $ordem->adicionarProdutoOrdem($ordemId, $produtoId);
+                        }
+                        // Armazena a mensagem de sucesso na sessão
+                        $_SESSION['message'] = 'Ordem cadastrada com sucesso!';
+                        header("Location: " . $_SERVER['PHP_SELF']);
+                        exit;
+                    } else {
+                        $erros[] = 'Erro: Ordem ID não foi gerado corretamente.';
+                    }
+                } else; {
+                    $errors[] = 'Erro: Cliente ID não foi definido corretamente.';
+                }
+            }
+
+            if (!empty($errors)) {
+                $_SESSION['errors'] = $errors;
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
             }
         }
     }
@@ -106,45 +123,79 @@ ob_start();
 ?>
 
 <div class="container">
+    <?php
+        if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])) {
+            echo '<div class="alert alert-danger" role="alert">';
+            echo '<ul>';
+            foreach ($_SESSION['errors'] as $error) {
+                echo '<li>' . $error . '</li>';
+            }
+            echo '</ul>';
+            echo '</div>';
+            unset($_SESSION['errors']);
+        }
+
+        if (isset($_SESSION['message'])) {
+            echo '<div class="alert alert-success" role="alert">';
+            echo $_SESSION['message'];
+            echo '</div>';
+            unset($_SESSION['message']);
+        }
+    ?>
     <form method="post" action="">
-        <p>Numero da ordem</p>
 
-        <label for="dataAbertura">Data de Abertura</label>
-        <input type="date" name="dataAbertura" id="dataAbertura" class="form-control">
-        
-        <label for="cpf">CPF do consumidor (sómente numeros)</label>
-        <input type="text" name="clienteCpf" id="clienteCpf" class="form-control" pattern="[0-9]*">
-
-        <button type="button" id="searchCliente" class="btn btn-primary mt-2 mb-2">Pesquisar Cliente</button>
+        <div class="row g-2 mt-3">
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <input type="date" name="dataAbertura" id="dataAbertura" class="form-control" placeholder="Data de abertura">
+                    <label for="dataAbertura">Data de Abertura</label>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <input type="text" name="clienteCpf" id="clienteCpf" class="form-control" pattern="[0-9]*" placeholder="CPF do consumidor (sómente numeros)">
+                    <label for="cpf">CPF do consumidor (sómente numeros)</label>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <button type="button" id="searchCliente" class="btn btn-primary mt-2 mb-2">Pesquisar Cliente</button>
+                </div>
+            </div>
+        </div>
 
         <div id="clienteInfo">
-            <label for="clienteNome">Nome do consumidor</label>
-            <input type="text" name="clienteNome" id="clienteNome" class="form-control">
+            <div class="form-floating mb-3">
+                <input type="text" name="clienteNome" id="clienteNome" class="form-control" placeholder="Nome do consumidor">
+                <label for="clienteNome">Nome do consumidor</label>
+            </div>
 
-            <label for="clienteEndereco">Endereço do consumidor</label>
-            <input type="text" name="clienteEndereco" id="clienteEndereco" class="form-control">
-
+            <div class="form-floating mb-3">
+                <input type="text" name="clienteEndereco" id="clienteEndereco" class="form-control" placeholder="Endereço do consumidor">
+                <label for="clienteEndereco">Endereço do consumidor</label>
+            </div>
         </div>
-        <!--
-        <label for="clienteId">Nome do consumidor</label>
-        <select name="clienteId" id="clienteId" class="form-control">
-            <?php #foreach ($clientes as $cliente): ?>
-                <option value="<?php #echo $cliente['id']; ?>" data-cpf="<?php #echo $cliente['cpf']; ?>"><?php #echo $cliente['nome']; ?></option>
-            <?php #endforeach; ?>
-            <option value="novo">Cadastrar novo cliente</option>
-        </select>
-        -->
-        <hr>
 
-        <label for="produtos">Produtos</label>
-        <div id="produtosContainer">
-            <select name="produtos[]" id="produtos" class="form-control mb-2">
-                <?php foreach ($produtos as $produto): ?>
-                    <option value="<?php echo $produto['id']; ?>"> <?php echo $produto['descricao']; ?> </option>
-                <?php endforeach; ?>
-            </select>
+        <div class="row g-2 mt-3">
+            <div class="col-md-4">
+                <div id="produtosContainer">
+                    <div class="form-floating">
+                        <select name="produtos[]" id="produtos" class="form-select mb-2" aria-label="form-select">
+                            <?php foreach ($produtos as $produto): ?>
+                            <option value="<?php echo $produto['id']; ?>"> <?php echo $produto['descricao']; ?> </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <label for="produtos">Produtos</label>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-floating">
+                        <button type="button" id="addProduto" class="btn btn-secondary mb-2">Adicionar Produto</button>
+                </div>
+            </div>
         </div>
-        <button type="button" id="addProduto" class="btn btn-secondary mb-3">Adicionar Produto</button>
+
 
             <!--<label for="ordemOrdemId">Tempo de Garantia</label>-->
             <!--<input type="text" name="ordemOrdemId" id="ordemOrdemId" class="form-control">-->
