@@ -15,6 +15,7 @@ ob_start();
     if (isset($_POST['action']) && $_POST['action'] == "excluirOrdem") {
         // Obtém o ID do cliente a ser excluído
         $ordemId = $_POST['ordemId'];
+        error_log('Tentando excluir a ordem com ID: ' . $ordemId); // Log de depuração
 
         // Chama o método para excluir o cliente
         $excluiu = $ordem->deletarOrdem($ordemId);
@@ -29,6 +30,7 @@ ob_start();
             // Responde com erro (status 500 ou outro código de erro apropriado)
             http_response_code(500);
             echo json_encode(['error' => 'Erro ao excluir a ordem selecionada.']);
+            error_log('Erro ao excluir a ordem com ID: ' . $ordemId); // Log do erro
             exit; // Encerra a execução do script após enviar a resposta
         }
     }
@@ -55,6 +57,7 @@ ob_start();
             $clienteNome = $_POST['clienteNome'];
             $clienteEndereco = $_POST['clienteEndereco'];
             $produtos = $_POST['produtos'];
+            $errors =[];
 
             // Verifique se os campos obrigatórios estão vazios
             if (empty($dataAbertura)) {
@@ -86,6 +89,19 @@ ob_start();
                 } else {
                     $clienteId = $cliente->adicionarCliente($clienteNome, $clienteCpf, $clienteEndereco);
                 }
+
+                // Após adicionar o cliente, recupere o id do cliente recém-criado
+                if ($clienteId) {
+                    $clienteExistente = $cliente->verificarCliente($clienteCpf);
+                    if ($clienteExistente) {
+                        $clienteId = $clienteExistente['id'];
+                    } else {
+                        $errors[] = 'Erro ao recuperar o ID do cliente recém-criado.';
+                    }
+                } else {
+                    $erros[] = 'Erro ao adicionar o novo cliente.';
+                }
+                
                 // Certifique-se de que $clienteId não está vazio ou nulo
                 if (!empty($clienteId)) {
                     // Chama o método para adicionar o Ordem
@@ -100,9 +116,9 @@ ob_start();
                         header("Location: " . $_SERVER['PHP_SELF']);
                         exit;
                     } else {
-                        $erros[] = 'Erro: Ordem ID não foi gerado corretamente.';
+                        $errors[] = 'Erro: Ordem ID não foi gerado corretamente.';
                     }
-                } else; {
+                } else {
                     $errors[] = 'Erro: Cliente ID não foi definido corretamente.';
                 }
             }
@@ -314,6 +330,7 @@ $(document).ready(function() {
 
     // Obtém o ID da ordem a ser excluída do atributo data-ordem-id
     var ordemId = $(this).data('ordem-id');
+    console.log('ID da ordem a ser excluída:', ordemId); // Log para depuração
 
     // Confirmação antes de excluir (opcional)
     if (!confirm('Tem certeza que deseja excluir esta ordem?')) {
@@ -322,24 +339,25 @@ $(document).ready(function() {
 
     // Faz a requisição AJAX para excluir a ordem
     $.ajax({
-        url: 'ordem.php', // Onde o servidor vai processar a requisição
-        type: 'POST',
-        data: {
-            action: 'excluirOrdem',
-            ordemId: ordemId
-        },
-        success: function(response) {
-            // Se a exclusão foi bem-sucedida, atualize a lista de ordens ou faça o que for necessário
-            alert('Ordem excluída com sucesso!');
-            // Recarrega a página para atualizar a lista de ordens
-            location.reload();
-        },
-        error: function(xhr, status, error) {
-            // Se houver erro na requisição AJAX
-            alert('Erro ao excluir a ordem.');
-            console.error(xhr.responseText);
-        }
-    });
+            url: 'ordem.php', // Onde o servidor vai processar a requisição
+            type: 'POST',
+            data: {
+                action: 'excluirOrdem',
+                ordemId: ordemId
+            },
+            success: function(response) {
+                // Se a exclusão foi bem-sucedida, atualize a lista de ordens ou faça o que for necessário
+                alert('Ordem excluída com sucesso!');
+                console.log('Resposta do servidor:', response); // Log para depuração
+                // Recarrega a página para atualizar a lista de ordens
+                location.reload();
+            },
+            error: function(xhr, status, error) {
+                // Se houver erro na requisição AJAX
+                alert('Erro ao excluir a ordem.');
+                console.error(xhr.responseText);
+            }
+        });
     });
 });
 </script>

@@ -69,10 +69,28 @@ class Ordem {
         return $stmt->execute();
     }
 
-    public function deletarOrdem($id) {
-        $stmt = $this->pdo->prepare("DELETE FROM tbordens WHERE id = :id");
-        $stmt->bindParam(':id', $id);
-        return $stmt->execute();
+    public function deletarOrdem($ordemId) {
+        try {
+            $this->pdo->beginTransaction(); // Inicia uma transação
+    
+            // Exclui os registros relacionados na tabela tbordem_produto
+            $stmtProdutos = $this->pdo->prepare('DELETE FROM "tbordem_produto" WHERE "ordemid" = :ordemId');
+            $stmtProdutos->bindParam(':ordemId', $ordemId);
+            $stmtProdutos->execute();
+    
+            // Exclui a ordem na tabela ordens
+            $stmtOrdem = $this->pdo->prepare('DELETE FROM "tbordens" WHERE "id" = :id');
+            $stmtOrdem->bindParam(':id', $ordemId);
+            $stmtOrdem->execute();
+    
+            $this->pdo->commit(); // Confirma a transação
+    
+            return $stmtOrdem->rowCount() > 0; // Retorna true se alguma linha foi afetada
+        } catch (PDOException $e) {
+            $this->pdo->rollBack(); // Reverte a transação em caso de erro
+            error_log('Erro ao excluir a ordem: ' . $e->getMessage()); // Log do erro
+            return false;
+        }
     }
 }
 
