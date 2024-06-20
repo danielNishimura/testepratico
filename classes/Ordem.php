@@ -36,7 +36,7 @@ class Ordem {
     }
 
     public function listarOrdem() {
-        $stmt = $this->pdo->prepare('SELECT o.*, c.nome as "clienteNome", c.cpf as "clienteCpf" FROM "tbordens" o JOIN "tbclientes" c ON o."clienteId" = c."id"');
+        $stmt = $this->pdo->prepare('SELECT o.*, c.nome as "clienteNome", c.cpf as "clienteCpf" FROM "tbordens" o JOIN "tbclientes" c ON o."clienteId" = c."id" ORDER BY nome');
         $stmt->execute();
         $ordens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -61,11 +61,10 @@ class Ordem {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function atualizarOrdem($id, $dataAbertura, $clienteId) {
-        $stmt = $this->pdo->prepare('UPDATE "tbordens" SET "dataAbertura" = :dataAbertura, "clienteId" = :clienteId WHERE "id" = :id');
+    public function atualizarOrdem($id, $dataAbertura) {
+        $stmt = $this->pdo->prepare('UPDATE "tbordens" SET "dataAbertura" = :dataAbertura WHERE "id" = :id');
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':dataAbertura', $dataAbertura);
-        $stmt->bindParam(':clienteId', $clienteId);
         return $stmt->execute();
     }
 

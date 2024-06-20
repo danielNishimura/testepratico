@@ -53,13 +53,13 @@ ob_start();
         if (isset($_POST['action']) && $_POST['action'] == "salvar") {
             $id = sanitizeInput($_POST['edit_id']);
             $dataAbertura = sanitizeInput($_POST['edit_dataAbertura']);
-            $clienteId = sanitizeInput($_POST['edit_clienteId']);
+            //$clienteId = sanitizeInput($_POST['edit_clienteId']);
 
             // Formata a data para o formato aceitável pelo PostgreSQL (YYYY-MM-DD)
             $dataAberturaFormatted = DateTime::createFromFormat('d/m/Y', $dataAbertura)->format('Y-m-d');
 
             // Chama o método para atualizar o Ordem
-            $ordem->atualizarOrdem($id, $dataAberturaFormatted, $clienteId);
+            $ordem->atualizarOrdem($id, $dataAberturaFormatted);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Ordem atualizado com sucesso!';

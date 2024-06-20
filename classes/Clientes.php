@@ -16,7 +16,7 @@ class Clientes {
     }
 
     public function listarClientes() {
-        $stmt = $this->pdo->prepare("SELECT * FROM tbClientes");
+        $stmt = $this->pdo->prepare("SELECT * FROM tbClientes ORDER BY nome");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

@@ -16,7 +16,7 @@ class Produtos {
     }
 
     public function listarProdutos() {
-        $stmt = $this->pdo->prepare("SELECT * FROM tbProdutos");
+        $stmt = $this->pdo->prepare("SELECT * FROM tbProdutos ORDER By descricao");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
