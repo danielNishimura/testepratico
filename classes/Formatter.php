@@ -13,6 +13,14 @@ class Formatter {
                substr($cpf, 9, 2);
     }
 
+    public static function displayAlert($message, $type = 'sucess') {
+        if (!empty($message)) {
+            echo '<div class="alert alert-' . htmlspecialchars($type) . '" role="alert">';
+            echo htmlspecialchars($message);
+            echo '</div>';
+        }
+    }
+
 }
 
 ?>

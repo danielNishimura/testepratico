@@ -29,7 +29,7 @@ class Produtos {
     }
 
     public function atualizarProduto($id, $descricao, $status, $tempoGarantia) {
-        $stmt = $this->pdo->prepare("UPDATE tbProdutos SET descricao = :descricao, status = :status, tempoGarantia = :tempoGarantia WHERE id = :id");
+        $stmt = $this->pdo->prepare('UPDATE tbProdutos SET descricao = :descricao, status = :status, "tempoGarantia" = :tempoGarantia WHERE id = :id');
         $stmt->bindParam(':id', $id);
         $stmt->bindParam(':descricao', $descricao);
         $stmt->bindParam(':status', $status);

@@ -1,52 +1,69 @@
 <?php
 ob_start();
     require 'pages/header.php';
-    require './classes/Clientes.php';
-    require './classes/Formatter.php';
+    require 'classes/Clientes.php';
+    require 'classes/Formatter.php';
 
     $clientes = new Clientes($pdo);
+    
+    // Função para sanitizar dados de entrada
+    function sanitizeInput($data) {
+        return htmlspecialchars(strip_tags(trim($data)));
+    }
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-        ##############################
-            // Verifica se a ação é para excluir o cliente
+        // Verifica se a ação é para excluir o cliente
     if (isset($_POST['action']) && $_POST['action'] == "excluirCliente") {
+
         // Obtém o ID do cliente a ser excluído
-        $clienteId = $_POST['clienteId'];
+        $clienteId = sanitizeInput($_POST['clienteId']);
 
         // Chama o método para excluir o cliente
         $excluiu = $clientes->deletarCliente($clienteId);
 
         // Retorna uma resposta adequada ao AJAX
         if ($excluiu) {
+            // Armazena a mensagem de sucesso na sessão
+            $_SESSION['message'] = 'Cliente excluído com sucesso!';
+            $_SESSION['message_type'] = 'danger';
             // Responde com sucesso (status 200)
             http_response_code(200);
             echo json_encode(['success' => true]);
             exit; // Encerra a execução do script após enviar a resposta
         } else {
+            // Armazena a mensagem de erro na sessão
+            $_SESSION['message'] = 'Erro ao excluir o cliente.';
+            $_SESSION['message_type'] = 'danger';
             // Responde com erro (status 500 ou outro código de erro apropriado)
             http_response_code(500);
             echo json_encode(['error' => 'Erro ao excluir o cliente.']);
             exit; // Encerra a execução do script após enviar a resposta
         }
     }
-        ##############################
 
+        // Verifica se o botão "Cancelar" foi clicado
+        if (isset($_POST['action']) && $_POST['action'] == "cancelar") {
+            // Redireciona de volta à página original
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
 
         // Verifica se o botão "Salvar" foi clicado
         if (isset($_POST['action']) && $_POST['action'] == "salvar") {
-            $id = $_POST['edit_id'];
-            $nome = $_POST['edit_nome'];
-            $cpf = $_POST['edit_cpf'];
-            $endereco = $_POST['edit_endereco'];
+            $id = sanitizeInput($_POST['edit_id']);
+            $nome = sanitizeInput($_POST['edit_nome']);
+            $cpf = sanitizeInput($_POST['edit_cpf']);
+            $endereco = sanitizeInput($_POST['edit_endereco']);
 
             // Chama o método para atualizar o cliente
             $clientes->atualizarCliente($id, $nome, $cpf, $endereco);
 
-        // Armazena a mensagem de sucesso na sessão
-        $_SESSION['message'] = 'Cliente atualizado com sucesso!';
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
+            // Armazena a mensagem de sucesso na sessão
+            $_SESSION['message'] = 'Cliente atualizado com sucesso!';
+            $_SESSION['message_type'] = 'warning';
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
 
             // Exibe mensagem de sucesso
             //echo '<div class="alert alert-success" role="alert">Cliente atualizado com sucesso!</div>';
@@ -54,15 +71,16 @@ ob_start();
         }
         // Se a ação for "adicionar", adiciona um novo cliente
         elseif (isset($_POST['action']) && $_POST['action'] == "adicionar") {
-            $nome = $_POST['nome'];
-            $cpf = $_POST['cpf'];
-            $endereco = $_POST['endereco'];
+            $nome = sanitizeInput($_POST['nome']);
+            $cpf = sanitizeInput($_POST['cpf']);
+            $endereco = sanitizeInput($_POST['endereco']);
 
             // Chama o método para adicionar o cliente
             $clientes->adicionarCliente($nome, $cpf, $endereco);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Cliente cadastrado com sucesso!';
+        $_SESSION['message_type'] = 'success';
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
         }
@@ -70,6 +88,13 @@ ob_start();
 
     // Obtém a lista de clientes atualizada após a atualização ou adição
     $listaClientes = $clientes->listarClientes();
+
+        // Exibição de mensagens de sucesso ou erro
+    if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
+        Formatter::displayAlert($_SESSION['message'], $_SESSION['message_type']);
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']); // Limpa a mensagem da sessão após exibi-la
+    }
 ?>
 
 <div class="container">
@@ -193,3 +218,7 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<?php
+ob_end_flush();
+?>

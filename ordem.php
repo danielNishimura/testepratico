@@ -9,12 +9,17 @@ ob_start();
     $ordem = new Ordem($pdo);
     $cliente = new Clientes($pdo);
     $produto = new Produtos($pdo);
+
+    // // Função para sanitizar dados de entrada
+    function sanitizeInput($data) {
+        return htmlspecialchars(strip_tags(trim($data)));
+    }
     
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Verifica se a ação é para excluir o cliente
     if (isset($_POST['action']) && $_POST['action'] == "excluirOrdem") {
         // Obtém o ID do cliente a ser excluído
-        $ordemId = $_POST['ordemId'];
+        $ordemId = sanitizeInput($_POST['ordemId']);
         error_log('Tentando excluir a ordem com ID: ' . $ordemId); // Log de depuração
 
         // Chama o método para excluir o cliente
@@ -22,6 +27,8 @@ ob_start();
 
         // Retorna uma resposta adequada ao AJAX
         if ($excluiu) {
+            $_SESSION['message'] = 'Ordem excluída com sucesso';
+            $_SESSION['message_type'] = 'danger';
             // Responde com sucesso (status 200)
             http_response_code(200);
             echo json_encode(['success' => true]);
@@ -35,27 +42,38 @@ ob_start();
         }
     }
 
-    // Verifica se o botão "Salvar" foi clicado
+        // Verifica se o botão "Cancelar" foi clicado
+        if (isset($_POST['action']) && $_POST['action'] == "cancelar") {
+            // Redireciona de volta à página original
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
+
+        // Verifica se o botão "Salvar" foi clicado
         if (isset($_POST['action']) && $_POST['action'] == "salvar") {
-            $id = $_POST['edit_id'];
-            $dataAbertura = $_POST['edit_dataAbertura'];
-            $clienteId = $_POST['edit_clienteId'];
+            $id = sanitizeInput($_POST['edit_id']);
+            $dataAbertura = sanitizeInput($_POST['edit_dataAbertura']);
+            $clienteId = sanitizeInput($_POST['edit_clienteId']);
+
+            // Formata a data para o formato aceitável pelo PostgreSQL (YYYY-MM-DD)
+            $dataAberturaFormatted = DateTime::createFromFormat('d/m/Y', $dataAbertura)->format('Y-m-d');
 
             // Chama o método para atualizar o Ordem
-            $ordem->atualizarOrdem($id, $dataAbertura, $clienteId);
+            $ordem->atualizarOrdem($id, $dataAberturaFormatted, $clienteId);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Ordem atualizado com sucesso!';
+        $_SESSION['message_type'] = 'warning';
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
 
         }
         // Se a ação for "adicionar", adiciona um novo Ordem
         elseif (isset($_POST['action']) && $_POST['action'] == "adicionar") {
-            $dataAbertura = $_POST['dataAbertura'];
-            $clienteCpf = $_POST['clienteCpf'];
-            $clienteNome = $_POST['clienteNome'];
-            $clienteEndereco = $_POST['clienteEndereco'];
+            $dataAbertura = sanitizeInput($_POST['dataAbertura']);
+            $clienteCpf = sanitizeInput($_POST['clienteCpf']);
+            $clienteNome = sanitizeInput($_POST['clienteNome']);
+            $clienteEndereco = sanitizeInput($_POST['clienteEndereco']);
             $produtos = $_POST['produtos'];
             $errors =[];
 
@@ -113,6 +131,7 @@ ob_start();
                         }
                         // Armazena a mensagem de sucesso na sessão
                         $_SESSION['message'] = 'Ordem cadastrada com sucesso!';
+                        $_SESSION['message_type'] = 'success';
                         header("Location: " . $_SERVER['PHP_SELF']);
                         exit;
                     } else {
@@ -136,28 +155,16 @@ ob_start();
     $clientes = $cliente->listarClientes();
     $produtos = $produto->listarProdutos();
 
+    // Exibição de mensagens de sucesso ou erro
+    if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
+        Formatter::displayAlert($_SESSION['message'], $_SESSION['message_type']);
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']); // Limpa a mensagem da sessão após exibi-la
+    }
+
 ?>
 
 <div class="container">
-    <?php
-        if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])) {
-            echo '<div class="alert alert-danger" role="alert">';
-            echo '<ul>';
-            foreach ($_SESSION['errors'] as $error) {
-                echo '<li>' . $error . '</li>';
-            }
-            echo '</ul>';
-            echo '</div>';
-            unset($_SESSION['errors']);
-        }
-
-        if (isset($_SESSION['message'])) {
-            echo '<div class="alert alert-success" role="alert">';
-            echo $_SESSION['message'];
-            echo '</div>';
-            unset($_SESSION['message']);
-        }
-    ?>
     <form method="post" action="">
 
         <div class="row g-2 mt-3">
@@ -211,10 +218,6 @@ ob_start();
                 </div>
             </div>
         </div>
-
-
-            <!--<label for="ordemOrdemId">Tempo de Garantia</label>-->
-            <!--<input type="text" name="ordemOrdemId" id="ordemOrdemId" class="form-control">-->
         <!-- Adiciona um campo oculto para identificar a ação -->
          <hr> 
         <input type="hidden" name="action" value="adicionar">
@@ -248,11 +251,7 @@ ob_start();
                             <?php endif; ?>
                         </td>
                         <td>
-                            <?php if(isset($_POST['edit_id']) && $_POST['edit_id'] == $ordem['id']): ?>
-                                <input type="text" name="edit_clienteId" value="<?php echo $ordem['clienteNome']; ?>" class="form-control">
-                            <?php else: ?>
-                                <?php echo $ordem['clienteNome']; ?>
-                            <?php endif; ?>
+                            <?php echo $ordem['clienteNome']; ?>
                         </td>
                         <td>
                             <?php echo Formatter::formatCPF($ordem['clienteCpf'])  ; ?>

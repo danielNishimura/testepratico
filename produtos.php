@@ -1,23 +1,30 @@
 <?php
 ob_start();
-    require 'pages/header.php';
-    require './classes/Produtos.php';
+
+require 'pages/header.php';
+require 'classes/Produtos.php';
+require 'classes/Formatter.php';
 
     $produtos = new Produtos($pdo);
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Função para sanitizar dados de entrada
+    function sanitizeInput($data) {
+        return htmlspecialchars(strip_tags(trim($data)));
+    }
 
-                ##############################
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Verifica se a ação é para excluir o cliente
         if (isset($_POST['action']) && $_POST['action'] == "excluirProduto") {
             // Obtém o ID do cliente a ser excluído
-            $produtoId = $_POST['produtoId'];
+            $produtoId = sanitizeInput($_POST['produtoId']);
 
             // Chama o método para excluir o cliente
             $excluiu = $produtos->deletarProduto($produtoId);
 
             // Retorna uma resposta adequada ao AJAX
             if ($excluiu) {
+                $_SESSION['message'] = 'Produto excluído com sucesso!';
+                $_SESSION['message_type'] = 'danger';
                 // Responde com sucesso (status 200)
                 http_response_code(200);
                 echo json_encode(['success' => true]);
@@ -29,20 +36,27 @@ ob_start();
                 exit; // Encerra a execução do script após enviar a resposta
             }
         }
-        ##############################
+
+        // Verifica se o botão "Cancelar" foi clicado
+        if (isset($_POST['action']) && $_POST['action'] == "cancelar") {
+            // Redireciona de volta à página original
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit;
+        }
 
         // Verifica se o botão "Salvar" foi clicado
         if (isset($_POST['action']) && $_POST['action'] == "salvar") {
-            $id = $_POST['edit_id'];
-            $descricao = $_POST['edit_descricao'];
-            $status = $_POST['edit_status'];
-            $tempoGarantia = $_POST['edit_tempoGarantia'];
+            $id = sanitizeInput($_POST['edit_id']);
+            $descricao = sanitizeInput($_POST['edit_descricao']);
+            $status = sanitizeInput($_POST['edit_status']);
+            $tempoGarantia = sanitizeInput($_POST['edit_tempoGarantia']);
 
             // Chama o método para atualizar o Produto
             $produtos->atualizarProduto($id, $descricao, $status, $tempoGarantia);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Produto atualizado com sucesso!';
+        $_SESSION['message_type'] = 'warning';
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
 
@@ -51,18 +65,16 @@ ob_start();
 
         }
         // Se a ação for "adicionar", adiciona um novo Produto
-        elseif (isset($_POST['action']) && $_POST['action'] == "adicionar") {
-            $descricao = $_POST['descricao'];
-            $status = $_POST['status'];
-            $tempoGarantia = $_POST['tempoGarantia'];
+        if (isset($_POST['action']) && $_POST['action'] == "adicionar") {
+            $descricao = sanitizeInput($_POST['descricao']);
+            $status = sanitizeInput($_POST['status']);
+            $tempoGarantia = sanitizeInput($_POST['tempoGarantia']);
 
-            // Chama o método para adicionar o Produto
-            var_dump ($_POST);
-           // die;
             $produtos->adicionarProduto($descricao, $status, $tempoGarantia);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Produto cadastrado com sucesso!';
+        $_SESSION['message_type'] = 'success';
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
         }
@@ -70,6 +82,13 @@ ob_start();
 
     // Obtém a lista de Produtos atualizada após a atualização ou adição
     $listaProdutos = $produtos->listarProdutos();
+
+    // Exibição de mensagens de sucesso ou erro
+    if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
+        Formatter::displayAlert($_SESSION['message'], $_SESSION['message_type']);
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']); // Limpa a mensagem da sessão após exibi-la
+    }
 ?>
 
 <div class="container">
@@ -195,3 +214,7 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<?php
+ob_end_flush();
+?>
