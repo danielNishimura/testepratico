@@ -13,18 +13,12 @@ CREATE TABLE "public"."tbclientes" (
 ) WITH (oids = false);
 
 INSERT INTO "tbclientes" ("id", "nome", "cpf", "endereco") VALUES
-(1,	'Adriano',	'11233344422',	'Rua um, 33, Bairro, Cidade'),
-(3,	'Luis',	'22233344133',	'Rua um, 55, Bairro, Cidade'),
-(7,	'Teste Telecontrol',	'17498755009',	'Rua teste, 199, Bairro teste, Cidade Teste'),
-(8,	'Felipe',	'60308107071',	'Rua teste, 555, Bairro teste de Marilia, Cidade Teste'),
-(12,	'Adriano',	'11233344455',	'Rua um, 33, Bairro, Cidade'),
-(13,	'Teste Telecontrol',	'11233344444',	'Rua teste, 555, Bairro teste de Marilia, Cidade Teste'),
 (15,	'Ronaldo',	'55566622233',	'Rua Catarino, 55, Bairro teste, Cidade Teste'),
-(20,	'Teste Telecontrol',	'07217618010',	'Rua teste, 199, Bairro teste, Cidade Teste'),
-(22,	'3Teste Telecontrol',	'93837554074',	'Rua teste, 555, Bairro teste de Marilia, Cidade Teste'),
-(23,	'4Teste Telecontrol',	'62449514090',	'Rua teste 4 um, 33, Bairro, Cidade'),
-(24,	'5Teste Telecontrol',	'02823523090',	'Rua teste 5 um, 33, Bairro, Cidade'),
-(25,	'6Teste Telecontrol',	'37978519015',	'Rua teste 6 um, 33, Bairro, Cidade');
+(7,	'Rodrigo',	'17498755009',	'Rua teste, 199, Bairro teste, Cidade Teste'),
+(32,	'Eduardo',	'92853764010',	'Rua 800 teste, 800, Bairro teste, Cidade Teste'),
+(25,	'Rafael',	'37978519015',	'Rua teste 6 um, 33, Bairro, Cidade'),
+(1,	'Adriano',	'11233344422',	'Rua um, 33, Bairro, Cidade'),
+(37,	'Henrique',	'06201708081',	'rua 2');
 
 DROP TABLE IF EXISTS "tbordem_produto";
 CREATE TABLE "public"."tbordem_produto" (
@@ -34,16 +28,17 @@ CREATE TABLE "public"."tbordem_produto" (
 ) WITH (oids = false);
 
 INSERT INTO "tbordem_produto" ("ordemid", "produtoid") VALUES
-(26,	1),
-(26,	2),
 (27,	1),
 (27,	3),
 (27,	5),
-(33,	1),
-(37,	1),
 (38,	1),
 (38,	2),
-(38,	3);
+(38,	3),
+(41,	1),
+(41,	2),
+(41,	7),
+(49,	20),
+(50,	5);
 
 DROP TABLE IF EXISTS "tbordens";
 DROP SEQUENCE IF EXISTS tbordem_id_seq;
@@ -57,11 +52,11 @@ CREATE TABLE "public"."tbordens" (
 ) WITH (oids = false);
 
 INSERT INTO "tbordens" ("id", "dataAbertura", "clienteId") VALUES
-(26,	'2024-06-18',	1),
 (27,	'2024-06-01',	7),
-(33,	'2024-06-19',	20),
-(37,	'2024-06-24',	24),
-(38,	'2024-06-30',	25);
+(38,	'2024-06-30',	25),
+(41,	'2025-06-21',	37),
+(49,	'2024-07-06',	1),
+(50,	'2024-07-02',	1);
 
 DROP TABLE IF EXISTS "tbprodutos";
 DROP SEQUENCE IF EXISTS tbprodutos_id_seq;
@@ -72,18 +67,23 @@ CREATE TABLE "public"."tbprodutos" (
     "descricao" character varying(200) NOT NULL,
     "status" character varying(100) NOT NULL,
     "tempoGarantia" character varying(3) NOT NULL,
+    "sku" character varying(10),
     CONSTRAINT "tbprodutos_pkey" PRIMARY KEY ("id")
 ) WITH (oids = false);
 
-INSERT INTO "tbprodutos" ("id", "descricao", "status", "tempoGarantia") VALUES
-(1,	'Geladeira',	'Ativo',	'36'),
-(2,	'Fogão',	'Ativo',	'30'),
-(3,	'Ventilador',	'Ativo',	'360'),
-(5,	'Coifa',	'Ativo',	'36');
+INSERT INTO "tbprodutos" ("id", "descricao", "status", "tempoGarantia", "sku") VALUES
+(2,	'Fogão',	'Ativo',	'30',	'0000000001'),
+(3,	'Ventilador',	'Ativo',	'360',	'0000000002'),
+(1,	'Geladeira',	'Ativo',	'36',	'0000000006'),
+(7,	'Lava louças',	'Ativo',	'36',	'0000000003'),
+(8,	'Televisão',	'Ativo',	'36',	'0000000004'),
+(19,	'Monitor',	'Ativo',	'36',	'0000000005'),
+(5,	'Freezer',	'Ativo',	'36',	'0000000007'),
+(20,	'Coifa',	'Ativo',	'36',	'0000000008');
 
 ALTER TABLE ONLY "public"."tbordem_produto" ADD CONSTRAINT "tbordem_produto_ordemid_fkey" FOREIGN KEY (ordemid) REFERENCES tbordens(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 ALTER TABLE ONLY "public"."tbordem_produto" ADD CONSTRAINT "tbordem_produto_produtoid_fkey" FOREIGN KEY (produtoid) REFERENCES tbprodutos(id) ON UPDATE CASCADE ON DELETE CASCADE NOT DEFERRABLE;
 
 ALTER TABLE ONLY "public"."tbordens" ADD CONSTRAINT "tbordens_clienteId_fkey" FOREIGN KEY ("clienteId") REFERENCES tbclientes(id) NOT DEFERRABLE;
 
--- 2024-06-19 17:08:55.305419+00
+-- 2024-06-20 20:26:03.036002+00
