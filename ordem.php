@@ -1,167 +1,124 @@
 <?php
 ob_start();
-    require 'pages/header.php';
-    require './classes/Ordem.php';
-    require './classes/Clientes.php';
-    require './classes/Produtos.php';
-    require './classes/Formatter.php';
-    
-    $ordem = new Ordem($pdo);
-    $cliente = new Clientes($pdo);
-    $produto = new Produtos($pdo);
+require 'pages/header.php';
+require './classes/Ordem.php';
+require './classes/Clientes.php';
+require './classes/Produtos.php';
+require './classes/Formatter.php';
 
-    // // Função para sanitizar dados de entrada
-    function sanitizeInput($data) {
-        return htmlspecialchars(strip_tags(trim($data)));
-    }
-    
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            // Verifica se a ação é para excluir o cliente
-    if (isset($_POST['action']) && $_POST['action'] == "excluirOrdem") {
-        // Obtém o ID do cliente a ser excluído
-        $ordemId = sanitizeInput($_POST['ordemId']);
-        error_log('Tentando excluir a ordem com ID: ' . $ordemId); // Log de depuração
+$ordem = new Ordem($pdo);
+$cliente = new Clientes($pdo);
+$produto = new Produtos($pdo);
 
-        // Chama o método para excluir o cliente
-        $excluiu = $ordem->deletarOrdem($ordemId);
+// Função para sanitizar dados de entrada
+function sanitizeInput($data) {
+    return htmlspecialchars(strip_tags(trim($data)));
+}
 
-        // Retorna uma resposta adequada ao AJAX
-        if ($excluiu) {
-            $_SESSION['message'] = 'Ordem excluída com sucesso';
-            $_SESSION['message_type'] = 'danger';
-            // Responde com sucesso (status 200)
-            http_response_code(200);
-            echo json_encode(['success' => true]);
-            exit; // Encerra a execução do script após enviar a resposta
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['action']) && $_POST['action'] == "adicionar") {
+        $dataAbertura = sanitizeInput($_POST['dataAbertura']);
+        $clienteCpf = sanitizeInput($_POST['clienteCpf']);
+        $clienteNome = sanitizeInput($_POST['clienteNome']);
+        $clienteEndereco = sanitizeInput($_POST['clienteEndereco']);
+        $produtos = $_POST['produtos'];
+        $errors = [];
+
+        // Verificar se os campos obrigatórios estão vazios
+        if (empty($dataAbertura)) {
+            $errors[] = 'A data de abertura é obrigatória.';
+        }
+
+        if (empty($clienteCpf)) {
+            $errors[] = 'O CPF do consumidor é obrigatório.';
+        }
+
+        if (empty($clienteNome)) {
+            $errors[] = 'O nome do consumidor é obrigatório.';
+        }
+
+        if (empty($clienteEndereco)) {
+            $errors[] = 'O endereço do consumidor é obrigatório.';
+        }
+
+        if (empty($produtos)) {
+            $errors[] = 'Pelo menos um produto deve ser selecionado.';
+        }
+
+        // Verificar se o cliente já existe pelo CPF
+        $clienteExistente = $cliente->verificarCliente($clienteCpf);
+        if (!$clienteExistente) {
+            // Se o cliente não existe, adiciona o novo cliente
+            $clienteId = $cliente->adicionarCliente($clienteNome, $clienteCpf, $clienteEndereco);
+            if (!$clienteId) {
+                $errors[] = 'Erro ao adicionar um novo cliente.';
+            } else {
+                var_dump($clienteId);
+                die;
+            }
         } else {
-            // Responde com erro (status 500 ou outro código de erro apropriado)
-            http_response_code(500);
-            echo json_encode(['error' => 'Erro ao excluir a ordem selecionada.']);
-            error_log('Erro ao excluir a ordem com ID: ' . $ordemId); // Log do erro
-            exit; // Encerra a execução do script após enviar a resposta
-        }
-    }
-
-        // Verifica se o botão "Cancelar" foi clicado
-        if (isset($_POST['action']) && $_POST['action'] == "cancelar") {
-            // Redireciona de volta à página original
-            header("Location: " . $_SERVER['PHP_SELF']);
-            exit;
+            // Se o cliente já existe, obter o ID do cliente existente
+            $clienteId = $clienteExistente['id'];
         }
 
-        // Verifica se o botão "Salvar" foi clicado
-        if (isset($_POST['action']) && $_POST['action'] == "salvar") {
-            $id = sanitizeInput($_POST['edit_id']);
-            $dataAbertura = sanitizeInput($_POST['edit_dataAbertura']);
-            //$clienteId = sanitizeInput($_POST['edit_clienteId']);
+        if (empty($errors)) {
+            // Chama o método para adicionar a ordem
+            $ordemId = $ordem->adicionarOrdem($dataAbertura, $clienteId);
 
-            // Formata a data para o formato aceitável pelo PostgreSQL (YYYY-MM-DD)
-            $dataAberturaFormatted = DateTime::createFromFormat('d/m/Y', $dataAbertura)->format('Y-m-d');
-
-            // Chama o método para atualizar o Ordem
-            $ordem->atualizarOrdem($id, $dataAberturaFormatted);
-
-        // Armazena a mensagem de sucesso na sessão
-        $_SESSION['message'] = 'Ordem atualizado com sucesso!';
-        $_SESSION['message_type'] = 'warning';
-        header("Location: " . $_SERVER['PHP_SELF']);
-        exit;
-
-        }
-        // Se a ação for "adicionar", adiciona um novo Ordem
-        elseif (isset($_POST['action']) && $_POST['action'] == "adicionar") {
-            $dataAbertura = sanitizeInput($_POST['dataAbertura']);
-            $clienteCpf = sanitizeInput($_POST['clienteCpf']);
-            $clienteNome = sanitizeInput($_POST['clienteNome']);
-            $clienteEndereco = sanitizeInput($_POST['clienteEndereco']);
-            $produtos = $_POST['produtos'];
-            $errors =[];
-
-            // Verifique se os campos obrigatórios estão vazios
-            if (empty($dataAbertura)) {
-                $errors[] = 'A data de abertura é obrigatória.';
-            }
-
-            if (empty($clienteCpf)) {
-                $errors[] = 'O CPF do consumidor é obrigatório.';
-            }
-
-            if (empty($clienteNome)) {
-                $errors[] = 'O nome do consumidor é obrigatório.';
-            }
-
-            if (empty($clienteEndereco)) {
-                $errors[] = 'O endereço do consumidor é obrigatório.';
-            }
-
-            if (empty($produtos)) {
-                $errors[] = 'Pelo menos um produto deve ser selecionado.';
-            }
-
-            if (empty($errors)) {
-                // Verifica se o cliente já existe
-                $clienteExistente = $cliente->verificarCliente($clienteCpf);
-    
-                if ($clienteExistente) {
-                    $clienteId = $clienteExistente['id'];
-                } else {
-                    $clienteId = $cliente->adicionarCliente($clienteNome, $clienteCpf, $clienteEndereco);
+            if ($ordemId) {
+                foreach ($produtos as $produtoId) {
+                    $ordem->adicionarProdutoOrdem($ordemId, $produtoId);
                 }
-
-                // Após adicionar o cliente, recupere o id do cliente recém-criado
-                if ($clienteId) {
-                    $clienteExistente = $cliente->verificarCliente($clienteCpf);
-                    if ($clienteExistente) {
-                        $clienteId = $clienteExistente['id'];
-                    } else {
-                        $errors[] = 'Erro ao recuperar o ID do cliente recém-criado.';
-                    }
-                } else {
-                    $erros[] = 'Erro ao adicionar o novo cliente.';
-                }
-                
-                // Certifique-se de que $clienteId não está vazio ou nulo
-                if (!empty($clienteId)) {
-                    // Chama o método para adicionar o Ordem
-                    $ordemId = $ordem->adicionarOrdem($dataAbertura, $clienteId);
-    
-                    if ($ordemId) {
-                        foreach ($produtos as $produtoId) {
-                            $ordem->adicionarProdutoOrdem($ordemId, $produtoId);
-                        }
-                        // Armazena a mensagem de sucesso na sessão
-                        $_SESSION['message'] = 'Ordem cadastrada com sucesso!';
-                        $_SESSION['message_type'] = 'success';
-                        header("Location: " . $_SERVER['PHP_SELF']);
-                        exit;
-                    } else {
-                        $errors[] = 'Erro: Ordem ID não foi gerado corretamente.';
-                    }
-                } else {
-                    $errors[] = 'Erro: Cliente ID não foi definido corretamente.';
-                }
-            }
-
-            if (!empty($errors)) {
-                $_SESSION['errors'] = $errors;
+                // Armazena a mensagem de sucesso na sessão
+                $_SESSION['message'] = 'Ordem cadastrada com sucesso!';
+                $_SESSION['message_type'] = 'success';
                 header("Location: " . $_SERVER['PHP_SELF']);
                 exit;
+            } else {
+                $errors[] = 'Erro ao cadastrar a ordem.';
             }
         }
+
+        // Se houver erros, armazenar na sessão e redirecionar de volta
+        $_SESSION['errors'] = $errors;
+        header("Location: " . $_SERVER['PHP_SELF']);
+        exit;
+    } elseif (isset($_POST['action']) && $_POST['action'] == "excluirOrdem") {
+        // Ação para excluir a ordem
+        $ordemId = $_POST['ordemId'];
+
+        if ($ordem->deletarOrdem($ordemId)) {
+            echo 'Ordem excluída com sucesso!';
+            // Aqui você pode retornar qualquer resposta necessária para o AJAX
+            exit;
+        } else {
+            // Se houver um erro ao excluir
+            http_response_code(500);
+            echo 'Erro ao excluir a ordem.';
+            exit;
+        }
     }
+}
 
-    // Obtém a lista de ordem atualizada após a atualização ou adição
-    $listaordem = $ordem->listarordem();
-    $clientes = $cliente->listarClientes();
-    $produtos = $produto->listarProdutos();
+// Obtém a lista de ordens atualizada após a atualização ou adição
+$listaordem = $ordem->listarordem();
+$clientes = $cliente->listarClientes();
+$produtos = $produto->listarProdutos();
 
-    // Exibição de mensagens de sucesso ou erro
-    if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
-        Formatter::displayAlert($_SESSION['message'], $_SESSION['message_type']);
-        unset($_SESSION['message']);
-        unset($_SESSION['message_type']); // Limpa a mensagem da sessão após exibi-la
+// Exibição de mensagens de sucesso ou erro
+if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
+    Formatter::displayAlert($_SESSION['message'], $_SESSION['message_type']);
+    unset($_SESSION['message']);
+    unset($_SESSION['message_type']); // Limpa a mensagem da sessão após exibi-la
+}
+
+// Exibição de erros de validação
+if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])) {
+    foreach ($_SESSION['errors'] as $error) {
+        Formatter::displayAlert($error, 'danger');
     }
-
+    unset($_SESSION['errors']);
+}
 ?>
 
 <div class="container">
@@ -170,13 +127,13 @@ ob_start();
         <div class="row g-2 mt-3">
             <div class="col-md">
                 <div class="form-floating mb-3">
-                    <input type="date" name="dataAbertura" id="dataAbertura" class="form-control" placeholder="Data de abertura">
+                    <input type="date" name="dataAbertura" id="dataAbertura" class="form-control" placeholder="Data de abertura" required>
                     <label for="dataAbertura">Data de Abertura</label>
                 </div>
             </div>
             <div class="col-md">
                 <div class="form-floating mb-3">
-                    <input type="text" name="clienteCpf" id="clienteCpf" class="form-control" pattern="[0-9]*" placeholder="CPF do consumidor (sómente numeros)">
+                    <input type="text" name="clienteCpf" id="clienteCpf" class="form-control" pattern="[0-9]*" placeholder="CPF do consumidor (sómente numeros)" required>
                     <label for="cpf">CPF do consumidor (sómente numeros)</label>
                 </div>
             </div>
@@ -189,7 +146,7 @@ ob_start();
 
         <div id="clienteInfo">
             <div class="form-floating mb-3">
-                <input type="text" name="clienteNome" id="clienteNome" class="form-control" placeholder="Nome do consumidor">
+                <input type="text" name="clienteNome" id="clienteNome" class="form-control" placeholder="Nome do consumidor" required>
                 <label for="clienteNome">Nome do consumidor</label>
             </div>
 
@@ -231,6 +188,7 @@ ob_start();
     <table class="table">
         <thead>
             <tr>
+                <th>Código</th>
                 <th>Data de abertura</th>
                 <th>Nome do consumidor</th>
                 <th>CPF do consumidor</th>
@@ -243,6 +201,9 @@ ob_start();
                 <tr>
                     <form method="post" action="">
                         <input type="hidden" name="edit_id" value="<?php echo $ordem['id']; ?>">
+                        <td>
+                            <?php echo $ordem['id']; ?>
+                        </td>
                         <td>
                             <?php if(isset($_POST['edit_id']) && $_POST['edit_id'] == $ordem['id']): ?>
                                 <input type="text" name="edit_dataAbertura" value="<?php echo Formatter::formatDataAbertura($ordem['dataAbertura']); ?>" class="form-control">
@@ -325,19 +286,19 @@ $(document).ready(function() {
 
     // Captura o evento de clique no botão de exclusão
     $('.delete-ordem').click(function(e) {
-    e.preventDefault(); // Evita o comportamento padrão de seguir o link
+        e.preventDefault(); // Evita o comportamento padrão de seguir o link
 
-    // Obtém o ID da ordem a ser excluída do atributo data-ordem-id
-    var ordemId = $(this).data('ordem-id');
-    console.log('ID da ordem a ser excluída:', ordemId); // Log para depuração
+        // Obtém o ID da ordem a ser excluída do atributo data-ordem-id
+        var ordemId = $(this).data('ordem-id');
+        console.log('ID da ordem a ser excluída:', ordemId); // Log para depuração
 
-    // Confirmação antes de excluir (opcional)
-    if (!confirm('Tem certeza que deseja excluir esta ordem?')) {
-        return false;
-    }
+        // Confirmação antes de excluir (opcional)
+        if (!confirm('Tem certeza que deseja excluir esta ordem?')) {
+            return false;
+        }
 
-    // Faz a requisição AJAX para excluir a ordem
-    $.ajax({
+        // Faz a requisição AJAX para excluir a ordem
+        $.ajax({
             url: 'ordem.php', // Onde o servidor vai processar a requisição
             type: 'POST',
             data: {

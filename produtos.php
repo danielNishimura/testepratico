@@ -50,9 +50,26 @@ require 'classes/Formatter.php';
             $descricao = sanitizeInput($_POST['edit_descricao']);
             $status = sanitizeInput($_POST['edit_status']);
             $tempoGarantia = sanitizeInput($_POST['edit_tempoGarantia']);
+            $sku = sanitizeInput($_POST['edit_sku']);
+
+            // Verifica se já existe um produto com o mesmo SKU
+            if (!$produtos->adicionarProduto($descricao, $status, $tempoGarantia, $sku)) {
+                $_SESSION['message'] = 'Já existe um produto cadastrado com esse SKU.';
+                $_SESSION['message_type'] = 'danger';
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
+
+            // Validar campos
+            if (empty($descricao) || empty($status) || empty($tempoGarantia) || empty($sku)) {
+                $_SESSION['message'] = 'Todos os campos são obrigatórios.';
+                $_SESSION['message_type'] = 'danger';
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
 
             // Chama o método para atualizar o Produto
-            $produtos->atualizarProduto($id, $descricao, $status, $tempoGarantia);
+            $produtos->atualizarProduto($id, $descricao, $status, $tempoGarantia, $sku);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Produto atualizado com sucesso!';
@@ -69,8 +86,26 @@ require 'classes/Formatter.php';
             $descricao = sanitizeInput($_POST['descricao']);
             $status = sanitizeInput($_POST['status']);
             $tempoGarantia = sanitizeInput($_POST['tempoGarantia']);
+            $sku = sanitizeInput($_POST['sku']);
 
-            $produtos->adicionarProduto($descricao, $status, $tempoGarantia);
+            // Verifica se já existe um produto com o mesmo SKU
+            if (!$produtos->adicionarProduto($descricao, $status, $tempoGarantia, $sku)) {
+                $_SESSION['message'] = 'Já existe um produto cadastrado com esse SKU.';
+                $_SESSION['message_type'] = 'danger';
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
+            
+
+            // Validar campos
+            if (empty($descricao) || empty($status) || empty($tempoGarantia) || empty($sku)) {
+                $_SESSION['message'] = 'Todos os campos são obrigatórios.';
+                $_SESSION['message_type'] = 'danger';
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
+            
+            $produtos->adicionarProduto($descricao, $status, $tempoGarantia, $sku);
 
         // Armazena a mensagem de sucesso na sessão
         $_SESSION['message'] = 'Produto cadastrado com sucesso!';
@@ -95,7 +130,7 @@ require 'classes/Formatter.php';
     <form method="post" action="">
         <div class="col-md mt-3">
             <div class="form-floating mb-3">
-                <input type="text" name="descricao" id="descricao" class="form-control" placeholder="Descrição">
+                <input type="text" name="descricao" id="descricao" class="form-control" placeholder="Descrição" required>
                 <label for="descricao">Descrição</label>
             </div>
         </div>
@@ -103,15 +138,22 @@ require 'classes/Formatter.php';
         <div class="row g-2 mt-3">
             <div class="col-md">
                 <div class="form-floating mb-3">
-                    <input type="text" name="status" id="status" class="form-control" placeholder="Status">
+                    <input type="text" name="status" id="status" class="form-control" placeholder="Status" required>
                     <label for="status">Status</label>
                 </div>
             </div>
 
             <div class="col-md">
                 <div class="form-floating mb-3">
-                    <input type="text" name="tempoGarantia" id="tempoGarantia" class="form-control" placeholder="Tempo de garantia ( em meses )">
+                    <input type="text" name="tempoGarantia" id="tempoGarantia" class="form-control" placeholder="Tempo de garantia ( em meses )" required>
                     <label for="tempoGarantia">Tempo de Garantia ( em meses )</label>
+                </div>
+            </div>
+
+            <div class="col-md">
+                <div class="form-floating mb-3">
+                    <input type="text" name="sku" id="sku" class="form-control" placeholder="sku" pattern="{11}" title="O SKU-Unidade de Controle de Estoque deve ter no máximo 10 caracteres" maxlength="10" value="<?php echo isset($sku) ? $sku : ''; ?>" required>
+                    <label for="sku">SKU (máximo de 10 caracteres)</label>
                 </div>
             </div>
         </div>
@@ -133,6 +175,7 @@ require 'classes/Formatter.php';
                 <th>Descricao</th>
                 <th>Status</th>
                 <th>Tempo de Garantia ( em meses )</th>
+                <th>SKU</th>
             </tr>
         </thead>
         <tbody>
@@ -142,23 +185,30 @@ require 'classes/Formatter.php';
                         <input type="hidden" name="edit_id" value="<?php echo $produto['id']; ?>">
                         <td>
                             <?php if(isset($_POST['edit_id']) && $_POST['edit_id'] == $produto['id']): ?>
-                                <input type="text" name="edit_descricao" value="<?php echo $produto['descricao']; ?>" class="form-control">
+                                <input type="text" name="edit_descricao" value="<?php echo $produto['descricao']; ?>" class="form-control" required>
                             <?php else: ?>
                                 <?php echo $produto['descricao']; ?>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if(isset($_POST['edit_id']) && $_POST['edit_id'] == $produto['id']): ?>
-                                <input type="text" name="edit_status" value="<?php echo $produto['status']; ?>" class="form-control">
+                                <input type="text" name="edit_status" value="<?php echo $produto['status']; ?>" class="form-control" required>
                             <?php else: ?>
                                 <?php echo $produto['status']; ?>
                             <?php endif; ?>
                         </td>
                         <td>
                             <?php if(isset($_POST['edit_id']) && $_POST['edit_id'] == $produto['id']): ?>
-                                <input type="text" name="edit_tempoGarantia" value="<?php echo $produto['tempoGarantia']; ?>" class="form-control">
+                                <input type="text" name="edit_tempoGarantia" value="<?php echo $produto['tempoGarantia']; ?>" class="form-control" required>
                             <?php else: ?>
                                 <?php echo $produto['tempoGarantia']; ?>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if(isset($_POST['edit_id']) && $_POST['edit_id'] == $produto['id']): ?>
+                                <input type="text" name="edit_sku" value="<?php echo $produto['sku']; ?>" class="form-control" required>
+                            <?php else: ?>
+                                <?php echo $produto['sku']; ?>
                             <?php endif; ?>
                         </td>
                         <td>
