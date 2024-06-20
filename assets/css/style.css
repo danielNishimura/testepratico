@@ -8,6 +8,8 @@
     --color-secondary: #303030;
     --color-secondary-dark: #1e1f1f;
     --color-text-base: #5f5f5f;
+
+    font-size: 62.5%; /* Define 1rem = 10px */
 }
 
 * {
@@ -16,12 +18,24 @@
     box-sizing: border-box;
 }
 
-#page-landing {
-    background-color: var(--color-background);
+body {
+    font-family: var(--bs-font-sans-serif); /* Use a fonte do Bootstrap */
+    font-size: 1.6rem; /* Define um tamanho de fonte padrão */
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+#page-landing {
+    background-color: var(--color-background);
     text-align: center;
+    padding: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
 }
 
 body,
@@ -29,7 +43,6 @@ input,
 button,
 textarea {
     font-weight: 500;
-    font-size: 1.6rem;
     color: var(--color-text-base);
 }
 
@@ -44,12 +57,18 @@ textarea {
     margin-bottom: 3.2rem;
 }
 
+.logo-container h1 {
+    font-size: 4rem; /* Tamanho inicial para títulos */
+    font-weight: bold; /* Negrito para destacar */
+}
+
 .logo-container h2 {
-    font-weight: 500;
+    font-size: 2rem; /* Tamanho inicial para subtítulos */
+    font-weight: 500; /* Peso normal */
 }
 
 .land-image {
-    width: 50%;
+    width: 50vw; /* Ajusta a largura da imagem de forma responsiva */
 }
 
 .buttons-container {
@@ -59,26 +78,130 @@ textarea {
 }
 
 .buttons-container a {
-    width: 20rem;
-    height: 5.4rem;
+    width: 25vw; /* Ajusta a largura do botão de forma responsiva */
+    height: 10vh; /* Ajusta a altura do botão de forma responsiva */
     background-color: var(--color-secondary);
     border-radius: 0.5rem;
     color: var(--color-primary-light);
-
     font: 500 1.5rem Archivo;
-
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-
-    transition: background 0.2s;
-    transition: color 0.5s;
+    transition: background 0.2s, color 0.5s;
 }
 
 .buttons-container a:hover {
     background-color: var(--color-secondary-dark);
     color: var(--color-background);
+}
+
+@media (max-width: 599px) {
+    body {
+        font-size: 1.4rem; /* Reduz a fonte em telas menores */
+    }
+
+    .logo-container h1 {
+        font-size: 3rem; /* Ajusta títulos */
+    }
+
+    .logo-container h2 {
+        font-size: 1.8rem; /* Ajusta subtítulos */
+    }
+
+    .buttons-container a {
+        font-size: 1.3rem; /* Ajusta tamanho do texto dos botões */
+    }
+
+    .land-image {
+        width: 70vw; /* Ajusta a largura da imagem em telas menores */
+    }
+
+    .buttons-container a {
+        width: 35vw; /* Ajusta a largura do botão em telas menores */
+        height: 8vh; /* Ajusta a altura do botão em telas menores */
+    }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+    body {
+        font-size: 1.6rem; /* 16px para telas médias */
+    }
+
+    .logo-container h1 {
+        font-size: 3.5rem; /* Ajusta títulos */
+    }
+
+    .logo-container h2 {
+        font-size: 2rem; /* Ajusta subtítulos */
+    }
+
+    .buttons-container a {
+        font-size: 1.5rem; /* Ajusta tamanho do texto dos botões */
+    }
+
+    .land-image {
+        width: 60vw; /* Ajusta a largura da imagem em telas médias */
+    }
+
+    .buttons-container a {
+        width: 30vw; /* Ajusta a largura do botão em telas médias */
+        height: 9vh; /* Ajusta a altura do botão em telas médias */
+    }
+}
+
+@media (min-width: 900px) and (max-width: 1199px) {
+    body {
+        font-size: 1.8rem; /* 18px para telas maiores */
+    }
+
+    .logo-container h1 {
+        font-size: 4rem; /* Ajusta títulos */
+    }
+
+    .logo-container h2 {
+        font-size: 2.4rem; /* Ajusta subtítulos */
+    }
+
+    .buttons-container a {
+        font-size: 1.7rem; /* Ajusta tamanho do texto dos botões */
+    }
+
+    .land-image {
+        width: 50vw; /* Ajusta a largura da imagem em telas maiores */
+    }
+
+    .buttons-container a {
+        width: 25vw; /* Ajusta a largura do botão em telas maiores */
+        height: 10vh; /* Ajusta a altura do botão em telas maiores */
+    }
+}
+
+@media (min-width: 1200px) {
+    body {
+        font-size: 2rem; /* 20px para telas muito grandes */
+    }
+
+    .logo-container h1 {
+        font-size: 4.5rem; /* Ajusta títulos */
+    }
+
+    .logo-container h2 {
+        font-size: 2.8rem; /* Ajusta subtítulos */
+    }
+
+    .buttons-container a {
+        font-size: 2rem; /* Ajusta tamanho do texto dos botões */
+    }
+
+    .land-image {
+        width: 40vw; /* Ajusta a largura da imagem em telas muito grandes */
+    }
+
+    .buttons-container a {
+        width: 20vw; /* Ajusta a largura do botão em telas muito grandes */
+        height: 12vh; /* Ajusta a altura do botão em telas muito grandes */
+    }
 }
 
 @media (min-width: 1100px) {
@@ -96,14 +219,13 @@ textarea {
         text-align: center;
         align-self: center;
     }
+    
     .land-image {
         grid-area: logo;
-    }
-    .buttons-container {
-        grid-area: button;
+        width: 30vw;
     }
 
-    .land-image {
-        width: 50%;
+    .buttons-container {
+        grid-area: button;
     }
 }
