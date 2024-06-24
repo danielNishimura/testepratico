@@ -62,8 +62,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 exit;
             }
 
+            $clientes->setId($id);
+            $clientes->setNome($nome);
+            $clientes->setCpf($cpf);
+            $clientes->setEndereco($endereco);
+
             // Atualizar cliente
-            $clientes->atualizarCliente($id, $nome, $cpf, $endereco);
+            if (!$clientes->atualizarCliente($id, $nome, $cpf, $endereco)) {
+                $_SESSION['message'] = 'Já existe um cliente cadastrado com esse CPF.';
+                $_SESSION['message_type'] = 'danger';
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
 
             $_SESSION['message'] = 'Cliente atualizado com sucesso!';
             $_SESSION['message_type'] = 'warning';
@@ -92,8 +102,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 exit;
             }
 
+            $clientes->setNome($nome);
+            $clientes->setCpf($cpf);
+            $clientes->setEndereco($endereco);
+
             // Verifica se já existe um cliente com o mesmo CPF
-            if (!$clientes->adicionarCliente($nome, $cpf, $endereco)) {
+            if (!$clientes->adicionarCliente()) {
                 $_SESSION['message'] = 'Já existe um cliente cadastrado com esse CPF.';
                 $_SESSION['message_type'] = 'danger';
                 header("Location: " . $_SERVER['PHP_SELF']);

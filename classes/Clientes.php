@@ -2,15 +2,53 @@
 
 class Clientes {
     private $pdo;
+    private $id;
+    private $nome;
+    private $cpf;
+    private $endereco;
 
     public function __construct($pdo) {
         $this->pdo = $pdo;
     }
 
-    public function adicionarCliente($nome, $cpf, $endereco) {
+    // Seters Mettods
+    public function setId($id) {
+        $this->id = $id; 
+    }
+
+    public function setNome($nome) {
+        $this->nome = $nome;
+    }
+
+    public function setCpf($cpf) {
+        $this->cpf = $cpf;
+    }
+
+    public function setEndereco($endereco) {
+        $this->endereco = $endereco;
+    }
+
+    // Getters Mettods
+    public function getId() {
+        return $this->id;
+    }
+
+    public function getNome() {
+        return $this->nome;
+    }
+
+    public function getCpf() {
+        return $this->cpf;
+    }
+
+    public function getEndereco() {
+        return $this->endereco;
+    }
+
+    public function adicionarCliente() {
         // Verifica se já existe um cliente com o mesmo CPF
         $stmt = $this->pdo->prepare("SELECT COUNT(*) AS count FROM tbClientes WHERE cpf = :cpf");
-        $stmt->bindParam(':cpf', $cpf);
+        $stmt->bindParam(':cpf', $this->cpf);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -21,9 +59,9 @@ class Clientes {
 
         // Se não há cliente com o mesmo CPF, insere o novo cliente
         $stmt = $this->pdo->prepare("INSERT INTO tbClientes (nome, cpf, endereco) VALUES (:nome, :cpf, :endereco)");
-        $stmt->bindParam(':nome', $nome);
-        $stmt->bindParam(':cpf', $cpf);
-        $stmt->bindParam(':endereco', $endereco);
+        $stmt->bindParam(':nome', $this->nome);
+        $stmt->bindParam(':cpf', $this->cpf);
+        $stmt->bindParam(':endereco', $this->endereco);
 
         if ($stmt->execute()) {
             // Retorna o ID do cliente inserido
@@ -49,8 +87,9 @@ class Clientes {
 
     public function atualizarCliente($id, $nome, $cpf, $endereco) {
         // Verifica se já existe um cliente com o mesmo CPF
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS count FROM tbClientes WHERE cpf = :cpf");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) AS count FROM tbClientes WHERE cpf = :cpf AND id != :id");
         $stmt->bindParam(':cpf', $cpf);
+        $stmt->bindParam(':id', $id);
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -59,11 +98,16 @@ class Clientes {
             return false;
         }
 
+        $this->setId($id);
+        $this->setNome($nome);
+        $this->setCpf($cpf);
+        $this->setEndereco($endereco);
+
         $stmt = $this->pdo->prepare("UPDATE tbClientes SET nome = :nome, cpf = :cpf, endereco = :endereco WHERE id = :id");
-        $stmt->bindParam(':id', $id);
-        $stmt->bindParam(':nome', $nome);
-        $stmt->bindParam(':cpf', $cpf);
-        $stmt->bindParam(':endereco', $endereco);
+        $stmt->bindParam(':id', $this->getId());
+        $stmt->bindParam(':nome', $this->getNome());
+        $stmt->bindParam(':cpf', $this->getCpf());
+        $stmt->bindParam(':endereco', $this->getEndereco());
         return $stmt->execute();
     }
 

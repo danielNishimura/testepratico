@@ -48,14 +48,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Verificar se o cliente já existe pelo CPF
         $clienteExistente = $cliente->verificarCliente($clienteCpf);
         if (!$clienteExistente) {
+
+            $cliente->setNome($clienteNome);
+            $cliente->setCpf($clienteCpf);
+            $cliente->setEndereco($clienteEndereco);
             // Se o cliente não existe, adiciona o novo cliente
-            $clienteId = $cliente->adicionarCliente($clienteNome, $clienteCpf, $clienteEndereco);
+            $clienteId = $cliente->adicionarCliente($cliente->getNome(), $cliente->getCpf(), $cliente->getEndereco());
             if (!$clienteId) {
                 $errors[] = 'Erro ao adicionar um novo cliente.';
-            } else {
-                var_dump($clienteId);
-                die;
             }
+
         } else {
             // Se o cliente já existe, obter o ID do cliente existente
             $clienteId = $clienteExistente['id'];
