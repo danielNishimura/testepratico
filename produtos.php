@@ -227,43 +227,7 @@ require 'classes/Formatter.php';
 </div>
 <?php require 'pages/footer.php' ?>
 
-<script>
-$(document).ready(function() {
-    // Captura o evento de clique no botão de exclusão
-    $('.delete-product').click(function(e) {
-        e.preventDefault(); // Evita o comportamento padrão de seguir o link
-
-        // Obtém o ID do produto a ser excluído do atributo data-product-id
-        var produtoId = $(this).data('product-id');
-
-        // Confirmação antes de excluir (opcional)
-        if (!confirm('Tem certeza que deseja excluir este produto?')) {
-            return false;
-        }
-
-        // Faz a requisição AJAX para excluir o produto
-        $.ajax({
-            url: 'produtos.php', // Onde o servidor vai processar a requisição
-            type: 'POST',
-            data: {
-                action: 'excluirProduto',
-                produtoId: produtoId
-            },
-            success: function(response) {
-                // Se a exclusão foi bem-sucedida, atualize a lista de prosutos ou faça o que for necessário
-                alert('Produto excluído com sucesso!');
-                // Recarrega a página para atualizar a lista de produtos
-                location.reload();
-            },
-            error: function(xhr, status, error) {
-                // Se houver erro na requisição AJAX
-                alert('Erro ao excluir o produto.');
-                console.error(xhr.responseText);
-            }
-        });
-    });
-});
-</script>
+<script src="assets/js/scripts.js"></script>
 
 <?php
 ob_end_flush();

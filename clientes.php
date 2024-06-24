@@ -217,57 +217,7 @@ if (isset($_SESSION['message']) && !empty($_SESSION['message'])) {
 </div>
 <?php require 'pages/footer.php' ?>
 
-<script>
-$(document).ready(function() {
-    // Captura o evento de clique no botão de exclusão
-    $('.delete-client').click(function(e) {
-        e.preventDefault(); // Evita o comportamento padrão de seguir o link
-
-        // Obtém o ID do cliente a ser excluído do atributo data-client-id
-        var clienteId = $(this).data('client-id');
-
-        // Confirmação antes de excluir (opcional)
-        if (!confirm('Tem certeza que deseja excluir este cliente?')) {
-            return false;
-        }
-
-        // Faz a requisição AJAX para excluir o cliente
-        $.ajax({
-            url: 'clientes.php', // Onde o servidor vai processar a requisição
-            type: 'POST',
-            data: {
-                action: 'excluirCliente',
-                clienteId: clienteId
-            },
-            success: function(response) {
-                // Se a exclusão foi bem-sucedida, atualize a lista de clientes ou faça o que for necessário
-                alert('Cliente excluído com sucesso!');
-                // Recarrega a página para atualizar a lista de clientes
-                location.reload();
-            },
-            error: function(xhr, status, error) {
-                // Se houver erro na requisição AJAX
-                alert('Erro ao excluir o cliente.');
-                console.error(xhr.responseText);
-            }
-        });
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function() {
-    var cpfInput = document.getElementById('cpf');
-
-    cpfInput.addEventListener('input', function() {
-        // Remove caracteres não numéricos
-        this.value = this.value.replace(/\D/g, '');
-
-        // Limita o campo a 11 caracteres
-        if (this.value.length > 11) {
-            this.value = this.value.slice(0, 11);
-        }
-    });
-});
-</script>
+<script src="assets/js/scripts.js"></script>
 
 <?php
 ob_end_flush();

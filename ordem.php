@@ -135,7 +135,7 @@ if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])) {
             </div>
             <div class="col-md">
                 <div class="form-floating mb-3">
-                    <input type="text" name="clienteCpf" id="clienteCpf" class="form-control" pattern="[0-9]*" placeholder="CPF do consumidor (sómente numeros)" required>
+                    <input type="text" name="clienteCpf" id="clienteCpf" class="form-control" placeholder="CPF do consumidor (sómente numeros)" required>
                     <label for="cpf">CPF do consumidor (sómente numeros)</label>
                 </div>
             </div>
@@ -244,82 +244,4 @@ if (isset($_SESSION['errors']) && !empty($_SESSION['errors'])) {
 
 <!-- Inclua o jQuery -->
 <script src="assets/js/jquery.min.js"></script>
-<script>
-$(document).ready(function() {
-
-    $('#clienteInfo').hide();
-
-    $('#searchCliente').click(function() {
-        var cpf = $('#clienteCpf').val();
-
-        $.ajax({
-            url: 'buscar_cliente.php',
-            type: 'POST',
-            data: {cpf: cpf},
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    $('#clienteNome').val(response.nome);
-                    $('#clienteEndereco').val(response.endereco);
-                    $('#clienteInfo').show();
-                } else {
-                    $('#clienteNome').val('');
-                    $('#clienteEndereco').val('');
-                    $('#clienteInfo').show();
-                }
-            },
-            error: function() {
-                console.log('Erro ao buscar cliente');
-            }
-        });
-    });
-
-    $('#clienteCpf').on('input', function() {
-        // Remove caracteres não numéricos
-        var sanitized = $(this).val().replace(/[^0-9]/g, '');
-        $(this).val(sanitized);
-    });
-
-    $('#addProduto').click(function() {
-        var newProdutoSelect = $('select[name="produtos[]"]:first').clone();
-        newProdutoSelect.val('');
-        $('#produtosContainer').append(newProdutoSelect);
-    });
-
-    // Captura o evento de clique no botão de exclusão
-    $('.delete-ordem').click(function(e) {
-        e.preventDefault(); // Evita o comportamento padrão de seguir o link
-
-        // Obtém o ID da ordem a ser excluída do atributo data-ordem-id
-        var ordemId = $(this).data('ordem-id');
-        console.log('ID da ordem a ser excluída:', ordemId); // Log para depuração
-
-        // Confirmação antes de excluir (opcional)
-        if (!confirm('Tem certeza que deseja excluir esta ordem?')) {
-            return false;
-        }
-
-        // Faz a requisição AJAX para excluir a ordem
-        $.ajax({
-            url: 'ordem.php', // Onde o servidor vai processar a requisição
-            type: 'POST',
-            data: {
-                action: 'excluirOrdem',
-                ordemId: ordemId
-            },
-            success: function(response) {
-                // Se a exclusão foi bem-sucedida, atualize a lista de ordens ou faça o que for necessário
-                alert('Ordem excluída com sucesso!');
-                console.log('Resposta do servidor:', response); // Log para depuração
-                // Recarrega a página para atualizar a lista de ordens
-                location.reload();
-            },
-            error: function(xhr, status, error) {
-                // Se houver erro na requisição AJAX
-                alert('Erro ao excluir a ordem.');
-                console.error(xhr.responseText);
-            }
-        });
-    });
-});
-</script>
+<script src="assets/js/scripts.js"></script>
